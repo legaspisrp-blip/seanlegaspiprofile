@@ -93,6 +93,23 @@ function ContactPage({ setRoute }) {
             </p>
 
             <div className="contact-channels">
+              <button
+                className="contact-ch contact-ch-primary"
+                onClick={() => {
+                  const url = window.PROFILE.bookingUrl;
+                  if (!url || url.includes("REPLACE")) {
+                    alert("Booking calendar isn't set up yet.\n\nTo enable: open Google Calendar → Settings → Appointment schedules → Create. Enable Google Meet. Then paste the public booking URL into PROFILE.bookingUrl in data.jsx.");
+                    return;
+                  }
+                  window.open(url, "_blank", "noopener");
+                }}
+              >
+                <div className="contact-ch-l">
+                  <span className="contact-ch-k mono">BOOK A CALL · 30 MIN · GOOGLE MEET</span>
+                  <span className="contact-ch-v">Pick a time on my calendar → meeting link auto-generated</span>
+                </div>
+                <span className="mono" style={{ fontSize: 11 }}>↗</span>
+              </button>
               <a className="contact-ch" href="mailto:legaspi.srp@gmail.com">
                 <div className="contact-ch-l">
                   <span className="contact-ch-k mono">EMAIL</span>
@@ -115,12 +132,11 @@ function ContactPage({ setRoute }) {
                 <span className="mono" style={{ fontSize: 11, color: "var(--muted)" }}>↗</span>
               </a>
               <button
-                className="contact-ch"
-                style={{ border: "1px solid var(--ink)", background: "var(--ink)", color: "var(--bg)", cursor: "pointer" }}
+                className="contact-ch contact-ch-secondary"
                 onClick={downloadResume}
               >
                 <div className="contact-ch-l">
-                  <span className="contact-ch-k mono" style={{ color: "color-mix(in oklab, var(--bg) 60%, transparent)" }}>RESUME · PDF</span>
+                  <span className="contact-ch-k mono">RESUME · PDF</span>
                   <span className="contact-ch-v">Generate CV from this site → print to PDF</span>
                 </div>
                 <span className="mono" style={{ fontSize: 11 }}>↓</span>

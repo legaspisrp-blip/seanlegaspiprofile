@@ -132,7 +132,7 @@ function ToolsGrid() {
     (acc[t.group] = acc[t.group] || []).push(t);
     return acc;
   }, {});
-  const order = ["Productivity", "Workspace", "Finance", "Sales", "E-commerce", "Marketing", "AI"];
+  const order = ["Productivity", "Communication", "Workspace", "Finance", "Sales", "E-commerce", "Marketing", "Social", "AI"];
   return (
     <div className="tools-stack">
       {order.map((g) => groups[g] ? (

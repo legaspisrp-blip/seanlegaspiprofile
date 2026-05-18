@@ -1,8 +1,10 @@
 // pages/case.jsx - case study detail (no employment dates)
 function CasePage({ id, setRoute }) {
-  const c = window.CASES.find((x) => x.id === id) || window.CASES[0];
-  const idx = window.CASES.findIndex((x) => x.id === c.id);
-  const next = window.CASES[(idx + 1) % window.CASES.length];
+  const cases = window.CASES;
+  const idx = cases.findIndex((x) => x.id === id);
+  const c = cases[idx] || cases[0];
+  const next = cases[(idx + 1) % cases.length];
+  const prev = cases[(idx - 1 + cases.length) % cases.length];
 
   const titleParts = c.company.split(" ");
   const titleFirst = titleParts[0];
@@ -80,14 +82,22 @@ function CasePage({ id, setRoute }) {
 
           <hr className="hairline" style={{ margin: "40px 0 28px" }} />
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-            <div>
-              <div className="mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Next case</div>
-              <div className="serif" style={{ fontSize: 28, lineHeight: 1.1 }}>{next.company}</div>
-              <div style={{ color: "var(--muted)", fontSize: 13 }}>{next.role}</div>
-            </div>
-            <button className="btn btn-primary" onClick={() => setRoute({ name: "case", id: next.id })}>
-              Next <span className="arrow">→</span>
+          <div className="pn-nav">
+            <button className="pn-btn pn-prev" onClick={() => setRoute({ name: "case", id: prev.id })}>
+              <span className="pn-arrow">←</span>
+              <div className="pn-meta">
+                <div className="mono pn-label">Previous</div>
+                <div className="pn-title serif">{prev.company}</div>
+                <div className="pn-sub">{prev.role}</div>
+              </div>
+            </button>
+            <button className="pn-btn pn-next" onClick={() => setRoute({ name: "case", id: next.id })}>
+              <div className="pn-meta" style={{ textAlign: "right" }}>
+                <div className="mono pn-label">Next</div>
+                <div className="pn-title serif">{next.company}</div>
+                <div className="pn-sub">{next.role}</div>
+              </div>
+              <span className="pn-arrow">→</span>
             </button>
           </div>
         </div>

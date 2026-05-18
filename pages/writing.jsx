@@ -153,9 +153,20 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
         </div>
       );
     }
+    // Compute prev/next from the same list visible in the current filter
+    const baseVisible = ownerMode ? articles : articles.filter(x => !isScheduled(x));
+    const filteredVisible = category === "All" ? baseVisible : baseVisible.filter(x => x.category === category);
+    const navList = filteredVisible.length > 1 ? filteredVisible : baseVisible;
+    const aIdx = navList.findIndex(x => x.id === a.id);
+    const prev = aIdx > 0 ? navList[aIdx - 1] : navList[navList.length - 1];
+    const next = aIdx >= 0 && aIdx < navList.length - 1 ? navList[aIdx + 1] : navList[0];
     return <ArticleReader article={a}
       ownerMode={ownerMode}
       scheduled={isScheduled(a)}
+      prev={prev}
+      next={next}
+      onPrev={() => setView({ mode: "read", id: prev.id })}
+      onNext={() => setView({ mode: "read", id: next.id })}
       onBack={() => setView({ mode: "list" })}
       onEdit={() => setView({ mode: "edit", id: a.id })}
       onDelete={() => onDelete(a.id)}

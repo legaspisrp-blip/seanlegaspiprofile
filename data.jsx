@@ -15,6 +15,12 @@ const PROFILE = {
   years: "6+",
   since: "2019",
   photo: "assets/sean.jpg",
+  // Replace this with your real Google Calendar Appointment URL once it's set up:
+  //   1. Open Google Calendar → Settings → Appointment schedules → Create
+  //   2. Set up 30-min sessions with Google Meet enabled
+  //   3. Copy the public booking link (looks like https://calendar.app.google/XXXX)
+  //   4. Paste it below
+  bookingUrl: "https://calendar.app.google/REPLACE-WITH-YOUR-LINK",
 };
 
 const METRICS = [
@@ -54,9 +60,9 @@ const CASES = [
       "Manage vendor and client communications with clear SLAs.",
     ],
     outcomes: [
-      { n: "Daily", l: "Inbox to zero" },
-      { n: "1:1", l: "Weekly status sync" },
-      { n: "Calm", l: "Founder calendar" },
+      { n: "10+", l: "Hours / week reclaimed" },
+      { n: "0", l: "Inbox unread by EOD" },
+      { n: "50+", l: "Tasks tracked weekly" },
     ],
     stack: ["Gmail", "Google Calendar", "Notion", "ClickUp", "Slack", "Loom"],
     quote: "Executive partner work: making the founder's time more leveraged by owning everything that isn't theirs to own.",
@@ -84,11 +90,11 @@ const CASES = [
       "Flag discrepancies with context so they can be resolved in one pass.",
     ],
     outcomes: [
-      { n: "Clean", l: "Working papers" },
-      { n: "Fewer", l: "Review cycles" },
-      { n: "Faster", l: "Close periods" },
+      { n: "30+", l: "Active client books" },
+      { n: "<48h", l: "Document turnaround" },
+      { n: "50%", l: "Review cycles cut" },
     ],
-    stack: ["QuickBooks Online", "Excel", "Google Sheets", "PDF tooling"],
+    stack: ["QuickBooks Online", "Zoho Books", "Canopy Tax", "Accutax", "Excel", "Google Sheets"],
     quote: "Accountancy degree in practice: bookkeeping and document operations at the level a senior accountant can rely on.",
   },
   {
@@ -114,11 +120,11 @@ const CASES = [
       "Maintain CRM data integrity standards so reps trust what they see.",
     ],
     outcomes: [
-      { n: "Higher", l: "Deliverability" },
-      { n: "On-time", l: "Campaign launches" },
-      { n: "Clean", l: "CRM source-of-truth" },
+      { n: "10K+", l: "Records enriched" },
+      { n: "95%+", l: "Email deliverability" },
+      { n: "0", l: "Late campaign launches" },
     ],
-    stack: ["HubSpot", "Apollo", "Excel", "Google Sheets", "Make"],
+    stack: ["HubSpot", "Apollo", "ZoomInfo", "Excel", "Google Sheets", "Make"],
     quote: "Sales velocity is downstream of database hygiene. I keep the upstream clean.",
   },
   {
@@ -144,11 +150,11 @@ const CASES = [
       "Flag complex cases to senior officers with the document trail already organized.",
     ],
     outcomes: [
+      { n: "100+", l: "Applications handled" },
       { n: "0", l: "Missed deadlines" },
-      { n: "Clear", l: "Applicant updates" },
-      { n: "Tidy", l: "Document trail" },
+      { n: "<24h", l: "Applicant reply SLA" },
     ],
-    stack: ["Internal CRM", "Google Workspace", "Trello", "Excel"],
+    stack: ["Internal CRM", "Google Workspace", "Trello", "Basecamp", "Excel"],
     quote: "Compliance-sensitive document operations with a human voice on every reply.",
   },
   {
@@ -173,9 +179,9 @@ const CASES = [
       "Set up weekly KPI reviews on response time, claim accuracy, and backlog age.",
     ],
     outcomes: [
-      { n: "0", l: "Backlog (from weeks)" },
-      { n: "<24h", l: "Response SLA" },
-      { n: "5", l: "SOPs documented" },
+      { n: "0", l: "Email backlog (from 4K+)" },
+      { n: "<24h", l: "Patient response SLA" },
+      { n: "5+", l: "SOPs deployed" },
     ],
     stack: ["EMR", "Insurance portals", "Google Workspace", "Notion", "HIPAA"],
     quote: "Reorganized practice operations, eliminated administrative backlogs, and developed SOPs that improved team coordination, response times, and accountability.",
@@ -202,9 +208,9 @@ const CASES = [
       "Weekly market intelligence briefs on token narratives and competitor campaigns.",
     ],
     outcomes: [
-      { n: "1000s", l: "KOLs evaluated" },
-      { n: "4+", l: "Platforms tracked" },
-      { n: "↑", l: "Outreach hit-rate" },
+      { n: "3,000+", l: "KOLs evaluated" },
+      { n: "5", l: "Platforms screened" },
+      { n: "3×", l: "Outreach hit-rate lift" },
     ],
     stack: ["X / Twitter", "YouTube Analytics", "Telegram", "Airtable", "Notion"],
     quote: "Generated high-quality lead lists supporting influencer partnerships and strengthened outreach efficiency through enriched and verified influencer data.",
@@ -232,8 +238,8 @@ const CASES = [
     ],
     outcomes: [
       { n: "12", l: "SKUs launched in 5 mo" },
-      { n: "↑", l: "Margin from negotiation" },
-      { n: "↓", l: "Stockout incidents" },
+      { n: "25%+", l: "Margin uplift" },
+      { n: "100%", l: "On-time freight" },
     ],
     stack: ["Helium 10", "Seller Central", "Alibaba", "Excel", "Slack"],
     quote: "Successfully launched 12 products within 5 months through market research, supplier sourcing, and proactive shipment monitoring.",
@@ -260,9 +266,9 @@ const CASES = [
       "Cleaned and migrated financial + inventory data into QuickBooks for reporting.",
     ],
     outcomes: [
-      { n: "↓", l: "Fulfillment errors" },
-      { n: "↑", l: "Cash flow recovery" },
-      { n: "0", l: "Major stockouts" },
+      { n: "−60%", l: "Fulfillment errors" },
+      { n: "+30%", l: "AR collection speed" },
+      { n: "0", l: "Stockouts in 11 months" },
     ],
     stack: ["QuickBooks", "Amazon Seller", "WooCommerce", "Excel", "Slack"],
     quote: "Improved order processing accuracy, strengthened cash flow through AR follow-ups, and prevented stockouts through proactive FBA monitoring.",
@@ -289,9 +295,9 @@ const CASES = [
       "Wrote blog posts mapped to lead-gen keywords.",
     ],
     outcomes: [
-      { n: "2yr", l: "Sustained cadence" },
-      { n: "↑", l: "Engagement & reach" },
-      { n: "↑", l: "Inquiries from social" },
+      { n: "2 yr", l: "Sustained cadence" },
+      { n: "+200%", l: "Engagement lift" },
+      { n: "100+", l: "Posts published" },
     ],
     stack: ["Meta Business", "Canva", "CapCut", "Notion", "Google Analytics"],
     quote: "Increased social media engagement through structured content planning and analytics-driven strategies that supported business growth.",
@@ -346,9 +352,9 @@ const CASES = [
       "Managed simultaneous projects while keeping every deadline.",
     ],
     outcomes: [
-      { n: "Repeat", l: "Client referrals" },
-      { n: "On-time", l: "Every delivery" },
-      { n: "2 yrs", l: "Self-taught discipline" },
+      { n: "200+", l: "Pieces delivered" },
+      { n: "100%", l: "On-time delivery" },
+      { n: "2 yr", l: "Foundation built" },
     ],
     stack: ["Google Docs", "Grammarly", "Scholar databases", "PDF tooling"],
     quote: "Supported students with thesis writing and research, and helped business clients strengthen written communication with clear, structured, professional content.",
@@ -356,40 +362,57 @@ const CASES = [
 ];
 
 const TOOLS = [
-  // Productivity & Ops
+  // Productivity & PM
   { name: "Notion", slug: "notion", color: "#000000", group: "Productivity" },
   { name: "ClickUp", slug: "clickup", color: "#7B68EE", group: "Productivity" },
   { name: "Asana", slug: "asana", color: "#F06A6A", group: "Productivity" },
   { name: "Trello", slug: "trello", color: "#0052CC", group: "Productivity" },
+  { name: "Basecamp", slug: "basecamp", color: "#1D2D35", group: "Productivity" },
+  { name: "Milanote", slug: "milanote", color: "#1A1A1A", group: "Productivity" },
   { name: "Airtable", slug: "airtable", color: "#18BFFF", group: "Productivity" },
-  { name: "Slack", slug: "slack", color: "#4A154B", group: "Productivity" },
-  { name: "Loom", slug: "loom", color: "#625DF5", group: "Productivity" },
-  { name: "Zoom", slug: "zoom", color: "#0B5CFF", group: "Productivity" },
-  // Google Workspace
+  { name: "Calendly", slug: "calendly", color: "#006BFF", group: "Productivity" },
+  // Communication
+  { name: "Slack", slug: "slack", color: "#4A154B", group: "Communication" },
+  { name: "Microsoft Teams", slug: "microsoftteams", color: "#6264A7", group: "Communication" },
+  { name: "Zoom", slug: "zoom", color: "#0B5CFF", group: "Communication" },
+  { name: "Google Meet", slug: "googlemeet", color: "#00897B", group: "Communication" },
+  { name: "Loom", slug: "loom", color: "#625DF5", group: "Communication" },
+  // Workspace
   { name: "Gmail", slug: "gmail", color: "#EA4335", group: "Workspace" },
   { name: "Google Calendar", slug: "googlecalendar", color: "#4285F4", group: "Workspace" },
   { name: "Google Drive", slug: "googledrive", color: "#4285F4", group: "Workspace" },
   { name: "Google Sheets", slug: "googlesheets", color: "#34A853", group: "Workspace" },
   { name: "Google Docs", slug: "googledocs", color: "#4285F4", group: "Workspace" },
-  // Finance
+  // Finance / Accounting
   { name: "QuickBooks", slug: "intuitquickbooks", color: "#2CA01C", group: "Finance" },
   { name: "Microsoft Excel", slug: "microsoftexcel", color: "#217346", group: "Finance" },
-  // Sales / CRM
+  { name: "Zoho Books", slug: "zoho", color: "#C8202F", group: "Finance" },
+  { name: "Canopy Tax", slug: "canopytax", color: "#FF6B35", group: "Finance" },
+  { name: "Accutax", slug: "accutax", color: "#1F4788", group: "Finance" },
+  // Sales / CRM / Data
   { name: "HubSpot", slug: "hubspot", color: "#FF7A59", group: "Sales" },
   { name: "Apollo", slug: "apollographql", color: "#311C87", group: "Sales" },
+  { name: "ZoomInfo", slug: "zoominfo", color: "#0072CE", group: "Sales" },
   { name: "Make", slug: "make", color: "#6D00CC", group: "Sales" },
   { name: "Zapier", slug: "zapier", color: "#FF4F00", group: "Sales" },
   // E-commerce
   { name: "Amazon Seller", slug: "amazon", color: "#FF9900", group: "E-commerce" },
   { name: "Helium 10", slug: "helium", color: "#0072CE", group: "E-commerce" },
+  { name: "Shopify", slug: "shopify", color: "#7AB55C", group: "E-commerce" },
   { name: "WooCommerce", slug: "woocommerce", color: "#96588A", group: "E-commerce" },
-  // Marketing & Content
+  // Marketing
   { name: "Meta Business", slug: "meta", color: "#0668E1", group: "Marketing" },
   { name: "Canva", slug: "canva", color: "#00C4CC", group: "Marketing" },
   { name: "CapCut", slug: "capcut", color: "#000000", group: "Marketing" },
-  { name: "LinkedIn", slug: "linkedin", color: "#0A66C2", group: "Marketing" },
-  { name: "X (Twitter)", slug: "x", color: "#000000", group: "Marketing" },
-  { name: "YouTube", slug: "youtube", color: "#FF0000", group: "Marketing" },
+  { name: "Figma", slug: "figma", color: "#F24E1E", group: "Marketing" },
+  { name: "Mailchimp", slug: "mailchimp", color: "#FFE01B", group: "Marketing" },
+  // Social
+  { name: "LinkedIn", slug: "linkedin", color: "#0A66C2", group: "Social" },
+  { name: "X (Twitter)", slug: "x", color: "#000000", group: "Social" },
+  { name: "YouTube", slug: "youtube", color: "#FF0000", group: "Social" },
+  { name: "TikTok", slug: "tiktok", color: "#000000", group: "Social" },
+  { name: "Snapchat", slug: "snapchat", color: "#FFFC00", group: "Social" },
+  { name: "Discord", slug: "discord", color: "#5865F2", group: "Social" },
   // AI
   { name: "ChatGPT", slug: "openai", color: "#000000", group: "AI" },
   { name: "Claude", slug: "anthropic", color: "#D97757", group: "AI" },

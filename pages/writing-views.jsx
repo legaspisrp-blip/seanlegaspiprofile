@@ -1,11 +1,16 @@
 // pages/writing-views.jsx - Reader and Composer for articles
 
-function ArticleReader({ article, ownerMode, scheduled, onBack, onEdit, onDelete, onToggleFeatured }) {
+function ArticleReader({ article, ownerMode, scheduled, prev, next, onPrev, onNext, onBack, onEdit, onDelete, onToggleFeatured }) {
   // Prefer modern HTML body; fall back to legacy blocks for unedited seed articles
   const rendered = React.useMemo(() => {
     if (article.body) return { __html: article.body };
     return { __html: window.blocksToHTML(article.blocks) };
   }, [article.body, article.blocks]);
+
+  // Scroll to top on article change
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [article.id]);
 
   return (
     <div className="page-enter container article-reader">
@@ -39,6 +44,27 @@ function ArticleReader({ article, ownerMode, scheduled, onBack, onEdit, onDelete
           </button>
           <button className="btn btn-ghost article-delete" onClick={onDelete}>Delete</button>
           <span className="mono owner-tag">OWNER MODE</span>
+        </div>
+      )}
+
+      {prev && next && (
+        <div className="pn-nav">
+          <button className="pn-btn pn-prev" onClick={onPrev}>
+            <span className="pn-arrow">←</span>
+            <div className="pn-meta">
+              <div className="mono pn-label">Previous article</div>
+              <div className="pn-title serif">{prev.title}</div>
+              <div className="pn-sub">{prev.category}</div>
+            </div>
+          </button>
+          <button className="pn-btn pn-next" onClick={onNext}>
+            <div className="pn-meta" style={{ textAlign: "right" }}>
+              <div className="mono pn-label">Next article</div>
+              <div className="pn-title serif">{next.title}</div>
+              <div className="pn-sub">{next.category}</div>
+            </div>
+            <span className="pn-arrow">→</span>
+          </button>
         </div>
       )}
 
