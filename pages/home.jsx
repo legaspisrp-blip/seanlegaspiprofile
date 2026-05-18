@@ -19,7 +19,7 @@ function HomePage({ setRoute, tweaks }) {
 
           <div className="hero-row">
             <p className="hero-blurb">
-              I'm <b>Sean Rovick P. Legaspi</b>, an operations and administrative specialist with six years of work across healthcare, Web3 research, Amazon, immigration services, and B2B e-commerce. My job is to organize complex workflows, ship documentation, and make the back office of a business run quietly in the background.
+              I'm <b>Sean Rovick P. Legaspi</b>, an operations and administrative specialist with six years of work across healthcare, accounting, e-commerce, executive support, and immigration services. My job is to organize complex workflows, build documentation, and make the back office of a business run quietly in the background.
             </p>
             <div className="hero-side mono">
               <div className="hero-side-row"><span>Based in</span><b>Metro Manila, PH</b></div>
@@ -59,7 +59,7 @@ function HomePage({ setRoute, tweaks }) {
           <SectionHead
             eyebrow="§ SELECTED WORK"
             title="A working <em>portfolio</em> of operations roles."
-            desc="A cross-section of healthcare ops, Web3 research, Amazon procurement, executive support, and accounting. Click any card for the deep-dive."
+            desc="A cross-section of executive assistance, healthcare operations, accounting support, document processing, and procurement. Click any card for the deep-dive."
           />
 
           <div className="feat-grid">

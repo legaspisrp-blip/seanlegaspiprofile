@@ -34,7 +34,7 @@ function AboutPage({ setRoute }) {
                 I started out doing freelance writing and research while I finished my accountancy degree at Sorsogon State University. From there I moved through data entry at a real-estate firm, inventory auditing across retail stores, and the back office of a B2B e-commerce business, where I learned that documentation, AR follow-up, and FBA replenishment all live or die on the same skill: keeping clean systems running quietly.
               </p>
               <p>
-                Since then I've added crypto KOL research, Amazon procurement, healthcare operations, accounting support, sales database hygiene, and visa processing. Currently I'm running four parallel engagements that span all of those disciplines. The thread connecting them is the same: find the bottleneck, write down the process, and put the right person on the right task with the right tool.
+                Since then I've added healthcare operations, accounting support, database hygiene, executive virtual assistance, procurement research, and visa processing. Currently I'm running four parallel engagements that span all of those disciplines. The thread connecting them is the same: find the bottleneck, write down the process, and put the right person on the right task with the right tool.
               </p>
               <p>
                 Outside of work I read about the workflows of other operators. Notion templates, ops blogs, healthcare RCM, FBA threads. I write up what I learn in the Journal section of this site.

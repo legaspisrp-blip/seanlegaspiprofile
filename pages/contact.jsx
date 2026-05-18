@@ -1,83 +1,45 @@
-// pages/contact.jsx
+// pages/contact.jsx — mailto-only contact (no third-party services)
 function ContactPage({ setRoute }) {
-  const [form, setForm] = React.useState({ name: "", email: "", company: "", topic: "Operations / SOPs", message: "" });
+  const [form, setForm] = React.useState({
+    name: "",
+    email: "",
+    company: "",
+    topic: "Operations & SOPs",
+    message: "",
+  });
   const [status, setStatus] = React.useState({ state: "idle", msg: "" });
-  const formRef = React.useRef(null);
-
-  // If we returned from FormSubmit with ?sent=1 in the URL, show success
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("sent") === "1") {
-      setStatus({ state: "sent", msg: "Sent. Sean will reply within a working day, Manila time." });
-      // Clean the URL
-      const cleanUrl = window.location.pathname + window.location.hash;
-      window.history.replaceState({}, "", cleanUrl);
-    }
-  }, []);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setStatus({ state: "sending", msg: "Sending…" });
-
-    // 1) Try the fetch path first (so we can stay on the page)
-    try {
-      const res = await fetch("https://formsubmit.co/ajax/legaspi.srp@gmail.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          company: form.company,
-          topic: form.topic,
-          message: form.message,
-          _subject: `Portfolio message · ${form.topic} · from ${form.name}`,
-          _template: "table",
-          _captcha: "false",
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      const ok = res.ok && (data.success === true || data.success === "true" || res.status === 200);
-
-      if (ok) {
-        setStatus({ state: "sent", msg: "Sent. Sean will reply within a working day, Manila time." });
-        setForm({ name: "", email: "", company: "", topic: "Operations / SOPs", message: "" });
-        return;
-      }
-      throw new Error("Bad response");
-    } catch (err) {
-      // 2) Fallback: submit the form natively (browser navigates to FormSubmit).
-      //    This sidesteps every CORS / sandbox issue and is 100% reliable on a live host.
-      if (formRef.current) {
-        setStatus({ state: "sending", msg: "Opening secure form…" });
-        formRef.current.submit();
-        return;
-      }
-      setStatus({
-        state: "error",
-        msg: "Couldn't send through the form. Please email legaspi.srp@gmail.com directly.",
-      });
-    }
-  };
 
   const onField = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
-  const mailtoLink = () => {
-    const subj = `Portfolio message · ${form.topic || "General"}`;
+  const buildMailto = () => {
+    const subj = `Portfolio inquiry · ${form.topic || "General"} · from ${form.name || "anonymous"}`;
     const body = [
+      `Hi Sean,`,
+      ``,
       `Name: ${form.name}`,
-      `Email: ${form.email}`,
-      `Company: ${form.company}`,
+      `Company / org: ${form.company || "—"}`,
       `Topic: ${form.topic}`,
-      "",
+      ``,
+      `Message:`,
       form.message,
+      ``,
+      `— Sent from your portfolio site`,
     ].join("\n");
     return `mailto:legaspi.srp@gmail.com?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
   };
 
-  // Build a return-to-site URL that the form will redirect to after submit
-  const returnUrl = typeof window !== "undefined"
-    ? `${window.location.origin}${window.location.pathname}?sent=1`
-    : "";
+  const submit = (e) => {
+    e.preventDefault();
+    // Open the visitor's own email client with everything pre-filled.
+    // They review and hit Send in their own app — Sean receives a normal email.
+    const url = buildMailto();
+    window.location.href = url;
+    // Show a confirmation hint after a moment
+    setStatus({
+      state: "sent",
+      msg: "Your email app should have opened with the message ready to send. If not, copy the details and email legaspi.srp@gmail.com directly.",
+    });
+  };
 
   return (
     <div className="page-enter">
@@ -86,30 +48,13 @@ function ContactPage({ setRoute }) {
           <div>
             <div className="eyebrow mono" style={{ marginBottom: 24 }}>§ CONTACT</div>
             <h1 className="contact-h">
-              Tell me what's <em>broken.</em>
+              Let's get your <em>operations</em> in order.
             </h1>
             <p className="contact-blurb">
-              Inbox overflowing, SOPs missing, FBA inventory misbehaving, or you need someone to screen a list of KOLs by Friday? Send a note. I usually reply within a working day, Manila time.
+              Inbox overflowing, SOPs missing, calendar in chaos, or a stack of documents that needs processing? Drop me a note. I usually reply within a working day, Manila time.
             </p>
 
             <div className="contact-channels">
-              <button
-                className="contact-ch contact-ch-primary"
-                onClick={() => {
-                  const url = window.PROFILE.bookingUrl;
-                  if (!url || url.includes("REPLACE")) {
-                    alert("Booking calendar isn't set up yet.\n\nTo enable: open Google Calendar → Settings → Appointment schedules → Create. Enable Google Meet. Then paste the public booking URL into PROFILE.bookingUrl in data.jsx.");
-                    return;
-                  }
-                  window.open(url, "_blank", "noopener");
-                }}
-              >
-                <div className="contact-ch-l">
-                  <span className="contact-ch-k mono">BOOK A CALL · 30 MIN · GOOGLE MEET</span>
-                  <span className="contact-ch-v">Pick a time on my calendar → meeting link auto-generated</span>
-                </div>
-                <span className="mono" style={{ fontSize: 11 }}>↗</span>
-              </button>
               <a className="contact-ch" href="mailto:legaspi.srp@gmail.com">
                 <div className="contact-ch-l">
                   <span className="contact-ch-k mono">EMAIL</span>
@@ -144,48 +89,43 @@ function ContactPage({ setRoute }) {
             </div>
           </div>
 
-          <form
-            ref={formRef}
-            className="form"
-            onSubmit={submit}
-            action="https://formsubmit.co/legaspi.srp@gmail.com"
-            method="POST"
-          >
-            {/* Hidden fields read by FormSubmit */}
-            <input type="hidden" name="_subject" value={`Portfolio message · ${form.topic} · from ${form.name}`} />
-            <input type="hidden" name="_template" value="table" />
-            <input type="hidden" name="_captcha" value="false" />
-            <input type="hidden" name="_next" value={returnUrl} />
+          <form className="form" onSubmit={submit}>
+            <div className="mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>
+              SEND A MESSAGE
+            </div>
 
             <div className="form-row row-two">
               <div className="form-row">
                 <label>Name</label>
-                <input name="name" required value={form.name} onChange={onField("name")} placeholder="Your name" />
+                <input required value={form.name} onChange={onField("name")} placeholder="Your name" />
               </div>
               <div className="form-row">
-                <label>Email</label>
-                <input name="email" required type="email" value={form.email} onChange={onField("email")} placeholder="you@company.com" />
+                <label>Your email</label>
+                <input required type="email" value={form.email} onChange={onField("email")} placeholder="you@company.com" />
               </div>
             </div>
+
             <div className="form-row">
-              <label>Company / org (optional)</label>
-              <input name="company" value={form.company} onChange={onField("company")} placeholder="Where you're writing from" />
+              <label>Company / organization (optional)</label>
+              <input value={form.company} onChange={onField("company")} placeholder="Where you're writing from" />
             </div>
+
             <div className="form-row">
               <label>Topic</label>
-              <select name="topic" value={form.topic} onChange={onField("topic")}>
-                <option>Operations / SOPs</option>
-                <option>E-commerce / Amazon</option>
-                <option>Web3 / KOL research</option>
-                <option>Healthcare admin</option>
-                <option>Bookkeeping / data ops</option>
+              <select value={form.topic} onChange={onField("topic")}>
+                <option>Operations & SOPs</option>
+                <option>Executive virtual assistance</option>
+                <option>Administrative support</option>
+                <option>Bookkeeping & accounting support</option>
+                <option>Database & campaign support</option>
+                <option>Document processing</option>
                 <option>Something else</option>
               </select>
             </div>
+
             <div className="form-row">
               <label>What's the project</label>
               <textarea
-                name="message"
                 required
                 rows={5}
                 value={form.message}
@@ -194,35 +134,20 @@ function ContactPage({ setRoute }) {
               />
             </div>
 
-            {status.state === "sent" ? (
+            <button className="btn btn-primary" type="submit" style={{ alignSelf: "flex-start" }}>
+              Open in my email app <span className="arrow">→</span>
+            </button>
+
+            <p className="mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.06em", marginTop: 4, lineHeight: 1.5 }}>
+              CLICKING SEND OPENS YOUR DEFAULT EMAIL APP (GMAIL, OUTLOOK, APPLE MAIL, ETC) WITH THE MESSAGE PRE-FILLED. REVIEW AND HIT SEND IN YOUR APP. NO THIRD-PARTY SERVICES INVOLVED.
+            </p>
+
+            {status.state === "sent" && (
               <div className="form-success">
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--accent)" }}></span>
                 <span>{status.msg}</span>
               </div>
-            ) : status.state === "error" ? (
-              <>
-                <div className="form-success" style={{ borderColor: "#b04a52", background: "color-mix(in oklab, #b04a52 8%, transparent)" }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#b04a52" }}></span>
-                  <span>{status.msg}</span>
-                </div>
-                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                  <a className="btn btn-primary" href={mailtoLink()} style={{ alignSelf: "flex-start" }}>
-                    Open email instead <span className="arrow">→</span>
-                  </a>
-                  <button className="btn btn-ghost" type="button" onClick={() => setStatus({ state: "idle", msg: "" })}>
-                    Try again
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button className="btn btn-primary" type="submit" style={{ alignSelf: "flex-start" }} disabled={status.state === "sending"}>
-                {status.state === "sending" ? (status.msg || "Sending…") : "Send message"} <span className="arrow">→</span>
-              </button>
             )}
-
-            <p className="mono" style={{ fontSize: 10, color: "var(--muted)", letterSpacing: "0.06em", marginTop: 4 }}>
-              FORM HANDLED BY FORMSUBMIT · MESSAGES DELIVERED TO LEGASPI.SRP@GMAIL.COM
-            </p>
           </form>
         </div>
       </section>
@@ -326,7 +251,7 @@ function downloadResume() {
 
   <div class="section">
     <h2 class="section-h">Summary</h2>
-    <p class="summary">Operations and administrative professional with six years of experience supporting healthcare practices, e-commerce businesses, Web3 research teams, and digital companies. I specialize in organizing complex workflows, improving operational efficiency, and supporting leadership teams with research, documentation, and data-driven insights. Bachelor of Science in Accountancy from Sorsogon State University.</p>
+    <p class="summary">Operations and administrative professional with six years of experience supporting healthcare practices, e-commerce businesses, accounting firms, and immigration services. I specialize in organizing complex workflows, improving operational efficiency, and supporting leadership teams with documentation, data, and day-to-day execution. Bachelor of Science in Accountancy from Sorsogon State University.</p>
   </div>
 
   <div class="section">
@@ -361,7 +286,7 @@ function downloadResume() {
     </div>
   </div>
 
-  <div class="footnote"><span>Generated from seanlegaspi.com - ${new Date().toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}</span><span>Page 1 / 1</span></div>
+  <div class="footnote"><span>Generated from sean-legaspi.com - ${new Date().toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}</span><span>Page 1 / 1</span></div>
 </div>
 </body></html>`;
 

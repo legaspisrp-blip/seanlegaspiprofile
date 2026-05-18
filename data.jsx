@@ -31,9 +31,9 @@ const METRICS = [
 ];
 
 const SKILL_KEYWORDS = [
-  "Operations", "SOP Design", "Workflow Automation", "Data Enrichment",
-  "Inventory Management", "Web3 Research", "HIPAA Compliance", "QuickBooks",
-  "Amazon FBA", "Influencer Analytics", "Procurement",
+  "Operations", "SOP Design", "Workflow Automation", "Executive Support",
+  "Inventory Management", "Document Operations", "HIPAA Compliance", "QuickBooks",
+  "Accounting Support", "Database Hygiene", "Procurement",
 ];
 
 const CASES = [
@@ -189,31 +189,31 @@ const CASES = [
   {
     id: "alpha",
     company: "Alpha Mail Media",
-    role: "KOL Research & Data Enrichment Specialist",
-    industry: "Web3 / Crypto",
+    role: "Research & Data Enrichment Specialist",
+    industry: "Marketing / Research",
     type: "Past role",
     color: "#9a6b3a",
-    tagline: "Hunted high-signal KOLs across crypto Twitter, YouTube, and Telegram, and proved which ones were worth a partnership.",
+    tagline: "Built and maintained a research database to qualify partnership prospects before any outreach budget was spent.",
     overview:
-      "Crypto marketing lives or dies on influencer quality. I built and maintained the research stack that screened thousands of KOLs for follower authenticity, engagement consistency, and niche fit before a single dollar of partnership budget was spent.",
+      "Marketing partnerships live or die on the quality of the underlying research. I built and maintained the screening database that evaluated thousands of prospects across multiple platforms for audience authenticity, engagement consistency, and niche fit before any campaign spend.",
     problem: [
-      "Bought lists were inflated with bots and recycled accounts.",
-      "Engagement rates looked good on paper but didn't convert.",
-      "No single source of truth for influencer history, niche, or contact info.",
+      "Purchased prospect lists were inflated with low-quality records.",
+      "Engagement numbers looked good on paper but didn't translate into outreach results.",
+      "There was no single source of truth for prospect history, contact info, or niche.",
     ],
     approach: [
-      "Built a structured KOL database with engagement ratios, niche tags, audience checks, and campaign history.",
-      "Cross-platform verification (X, YouTube, Telegram) to flag suspicious follower curves.",
-      "Standardized data hygiene rules: deduplication, contact verification, niche taxonomy.",
-      "Weekly market intelligence briefs on token narratives and competitor campaigns.",
+      "Built a structured prospect database with engagement ratios, niche tags, audience checks, and outreach history.",
+      "Cross-platform verification to flag suspicious accounts and stale records.",
+      "Standardized data hygiene rules: deduplication, contact verification, taxonomy.",
+      "Weekly market intelligence briefs on trends and competitor campaigns.",
     ],
     outcomes: [
-      { n: "3,000+", l: "KOLs evaluated" },
+      { n: "3,000+", l: "Prospects evaluated" },
       { n: "5", l: "Platforms screened" },
       { n: "3×", l: "Outreach hit-rate lift" },
     ],
-    stack: ["X / Twitter", "YouTube Analytics", "Telegram", "Airtable", "Notion"],
-    quote: "Generated high-quality lead lists supporting influencer partnerships and strengthened outreach efficiency through enriched and verified influencer data.",
+    stack: ["Airtable", "Notion", "Google Sheets", "ZoomInfo", "Apollo"],
+    quote: "Generated high-quality lead lists supporting partnership initiatives and strengthened outreach efficiency through enriched, verified records.",
   },
   {
     id: "uppsyde",
@@ -424,7 +424,7 @@ const TIMELINE = [
   { year: "Most recent", role: "Database & Campaign Support", co: "ISALESS", note: "Sales database hygiene and outbound campaign coordination." },
   { year: "Most recent", role: "Junior Visa Processing Assistant", co: "Student World Pte Ltd", note: "International student visa applications and applicant comms." },
   { year: "Prior", role: "Medical Administrative & Operations Manager", co: "MNT Scientific, LLC", note: "Cleared backlogs, wrote SOPs, set KPIs." },
-  { year: "Prior", role: "KOL Research & Data Enrichment Specialist", co: "Alpha Mail Media", note: "Built the KOL screening database for crypto." },
+  { year: "Prior", role: "Research & Data Enrichment Specialist", co: "Alpha Mail Media", note: "Built a prospect screening database for partnership outreach." },
   { year: "Prior", role: "Social Media Manager & Content Creator", co: "PNJ Financial Solutions", note: "Two-year content engine for an insurance brand." },
   { year: "Prior", role: "Procurement & Product Research Assistant", co: "Uppsyde", note: "12 Amazon SKUs sourced and launched in 5 months." },
   { year: "Prior", role: "E-commerce Administrative Virtual Assistant", co: "Dynamic Voice & Data", note: "Listings, orders, AR/AP, FBA inventory." },
@@ -440,7 +440,7 @@ const SKILLS = [
   },
   {
     h: "Data & Research",
-    items: ["Market & competitor research", "Influencer / KOL screening", "Data cleanup & enrichment", "Reporting & dashboards", "Document operations"],
+    items: ["Market & competitor research", "Data cleanup & enrichment", "Document operations", "Reporting & dashboards", "Database hygiene"],
   },
   {
     h: "E-commerce & Finance",
