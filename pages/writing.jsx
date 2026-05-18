@@ -107,6 +107,37 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
     return () => clearInterval(i);
   }, []);
 
+  // Sort all articles by Manila publish instant (or parsed date), newest first.
+  // We compute this once at the top so all hooks run consistently regardless of view.
+  const sortedArticles = React.useMemo(() => {
+    return [...articles].sort((a, b) => {
+      const ta = manilaInstant(a) ?? (parseDate(a.date)?.getTime() ?? 0);
+      const tb = manilaInstant(b) ?? (parseDate(b.date)?.getTime() ?? 0);
+      return tb - ta;
+    });
+  }, [articles]);
+
+  // Build year + year-month options once (must be unconditional to satisfy hook rules)
+  const dateOptions = React.useMemo(() => {
+    const years = new Set();
+    const yearMonths = new Set();
+    sortedArticles.forEach(a => {
+      const d = parseDate(a.date);
+      if (!d) return;
+      years.add(d.getFullYear());
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      yearMonths.add(`${y}-${m}`);
+    });
+    const sortedYears = [...years].sort((a, b) => b - a);
+    const sortedYearMonths = [...yearMonths].sort().reverse();
+    const monthName = (ym) => {
+      const [y, m] = ym.split("-").map(Number);
+      return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+    return { years: sortedYears, monthsByYear: sortedYearMonths.map(ym => ({ ym, label: monthName(ym) })) };
+  }, [sortedArticles]);
+
   const onSave = (draft) => {
     const overrides = getOverrides();
     if (draft.isNew) {
@@ -191,11 +222,11 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
 
   if (view.mode === "compose" || view.mode === "edit") {
     if (!ownerMode) return null; // safety
-    const editing = view.mode === "edit" ? articles.find(a => a.id === view.id) : null;
+    const editing = view.mode === "edit" ? sortedArticles.find(a => a.id === view.id) : null;
     return <ArticleComposer initial={editing} onCancel={() => setView(editing ? { mode: "read", id: editing.id } : { mode: "list" })} onSave={onSave} />;
   }
   if (view.mode === "read") {
-    const a = articles.find(x => x.id === view.id);
+    const a = sortedArticles.find(x => x.id === view.id);
     if (!a) return null;
     if (!ownerMode && isScheduled(a)) {
       return (
@@ -207,7 +238,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
         </div>
       );
     }
-    const baseVisible = ownerMode ? articles : articles.filter(x => !isScheduled(x));
+    const baseVisible = ownerMode ? sortedArticles : sortedArticles.filter(x => !isScheduled(x));
     const filteredVisible = category === "All" ? baseVisible : baseVisible.filter(x => x.category === category);
     const navList = filteredVisible.length > 1 ? filteredVisible : baseVisible;
     const aIdx = navList.findIndex(x => x.id === a.id);
@@ -229,8 +260,8 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
 
   // List view
   const visible = ownerMode
-    ? (showScheduled ? articles.filter(isScheduled) : articles)
-    : articles.filter(a => !isScheduled(a));
+    ? (showScheduled ? sortedArticles.filter(isScheduled) : sortedArticles)
+    : sortedArticles.filter(a => !isScheduled(a));
 
   // Date filter
   const dateFiltered = visible.filter(a => {
@@ -247,28 +278,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
   const filtered = dateFiltered.filter(a => category === "All" || a.category === category);
   const featured = visible.filter(a => a.featured);
 
-  const scheduledCount = articles.filter(isScheduled).length;
-
-  // Build year + year-month options from visible articles
-  const dateOptions = React.useMemo(() => {
-    const years = new Set();
-    const yearMonths = new Set();
-    visible.forEach(a => {
-      const d = parseDate(a.date);
-      if (!d) return;
-      years.add(d.getFullYear());
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      yearMonths.add(`${y}-${m}`);
-    });
-    const sortedYears = [...years].sort((a, b) => b - a);
-    const sortedYearMonths = [...yearMonths].sort().reverse();
-    const monthName = (ym) => {
-      const [y, m] = ym.split("-").map(Number);
-      return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
-    };
-    return { years: sortedYears, monthsByYear: sortedYearMonths.map(ym => ({ ym, label: monthName(ym) })) };
-  }, [visible.length, articles]);
+  const scheduledCount = sortedArticles.filter(isScheduled).length;
 
   return (
     <div className="page-enter">
