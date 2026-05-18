@@ -1506,3 +1506,109 @@ button { font-family: inherit; }
 }
 .cover-remove-btn { color: #b04a52; }
 .cover-remove-btn:hover { border-color: #b04a52; color: #b04a52; }
+
+/* Rich-text toolbar */
+.rt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  position: sticky;
+  top: 60px;
+  z-index: 5;
+}
+.rt-btn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 13px;
+  transition: all .12s;
+}
+.rt-btn:hover {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+.rt-btn:active { background: color-mix(in oklab, var(--accent) 18%, var(--paper)); }
+.rt-icon { line-height: 1; }
+.rt-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--line);
+  margin: 0 4px;
+}
+
+/* Composer body — adjust corners since toolbar sits above */
+.composer-body {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-top: 0 !important;
+}
+
+/* Article rendering: lists, quote, sub-headings, inline */
+.article-body strong { color: var(--ink); font-weight: 600; }
+.article-body em { font-style: italic; }
+.article-body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color .12s;
+}
+.article-body a:hover { color: var(--ink); }
+.article-body code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--paper);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+}
+.article-body s { color: var(--muted); }
+
+.article-h2 {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 28px 0 12px;
+  color: var(--ink);
+}
+
+.article-quote {
+  margin: 24px 0;
+  padding: 14px 22px;
+  border-left: 3px solid var(--accent);
+  background: var(--paper);
+  border-radius: 0 8px 8px 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.article-ul, .article-ol {
+  margin: 14px 0 22px;
+  padding-left: 22px;
+}
+.article-ul li, .article-ol li {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+}
+.article-ul li::marker { color: var(--accent); }
+.article-ol li::marker { color: var(--accent); font-family: var(--mono); font-size: 0.85em; }

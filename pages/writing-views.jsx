@@ -24,10 +24,7 @@ function ArticleReader({ article, ownerMode, scheduled, onBack, onEdit, onDelete
       </figure>
 
       <article className="article-body">
-        {(article.blocks || []).map((b, i) => {
-          if (b.s === "h") return <h3 key={i} className="article-h">{b.t}</h3>;
-          return <p key={i}>{b.t}</p>;
-        })}
+        {(article.blocks || []).map((b, i) => window.renderBlock(b, i))}
       </article>
 
       {ownerMode && (
@@ -109,6 +106,7 @@ function ArticleComposer({ initial, onCancel, onSave }) {
   }).filter(Boolean);
 
   const [bodyText, setBodyText] = React.useState(blocksToText(draft.blocks));
+  const bodyRef = React.useRef(null);
   const onField = (k) => (e) => setDraft({ ...draft, [k]: e.target.value });
 
   const wordCount = (bodyText || "").split(/\s+/).filter(Boolean).length;
@@ -196,9 +194,17 @@ function ArticleComposer({ initial, onCancel, onSave }) {
             value={draft.subtitle}
             onChange={onField("subtitle")}
           />
+
+          <window.RichToolbar
+            textareaRef={bodyRef}
+            value={bodyText}
+            onChange={setBodyText}
+          />
+
           <textarea
+            ref={bodyRef}
             className="composer-body"
-            placeholder={`Write your article…\n\nTips:\n• Lines starting with § become section headings.\n• Blank lines separate paragraphs.`}
+            placeholder={`Write your article…\n\nUse the toolbar above to add headings, bold, italics, lists, and more. Or type the markdown shortcuts directly:\n  § Section heading\n  ## Sub-heading\n  **bold**  *italic*  ~~strike~~  \`code\`\n  > Quote\n  - bullet list\n  1. numbered list\n  [link text](https://url)`}
             rows={22}
             value={bodyText}
             onChange={(e) => setBodyText(e.target.value)}
