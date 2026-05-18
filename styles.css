@@ -1964,3 +1964,74 @@ button { font-family: inherit; }
 }
 .contact-ch-secondary:hover { background: var(--ink-2) !important; }
 .contact-ch-secondary .contact-ch-v { color: color-mix(in oklab, var(--bg) 70%, transparent); }
+
+
+/* Date filter dropdown on Journal */
+.date-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.date-filter select {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 7px 28px 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='currentColor' d='M0 0h10L5 6z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  outline: none;
+}
+.date-filter select:hover { border-color: var(--ink-2); color: var(--ink); }
+.date-filter select:focus { border-color: var(--accent); }
+.date-clear {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.date-clear:hover { text-decoration: underline; }
+
+.cat-bar { align-items: center; }
+@media (max-width: 640px) {
+  .cat-bar { flex-direction: column; align-items: flex-start; }
+  .date-filter { width: 100%; }
+  .date-filter select { flex: 1; }
+}
+
+/* Scheduled banner on the read view */
+.scheduled-banner {
+  margin: 24px 0;
+  padding: 16px 22px;
+  border: 1px dashed #c89a00;
+  border-radius: 12px;
+  background: color-mix(in oklab, #c89a00 10%, var(--paper));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.scheduled-banner-l { flex: 1; }
+.scheduled-banner-tag {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: #8a6500;
+  display: block;
+  margin-bottom: 4px;
+}
+.scheduled-banner-msg {
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.scheduled-banner-msg b { color: var(--ink); }

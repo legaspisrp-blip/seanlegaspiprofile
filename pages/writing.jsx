@@ -1,10 +1,9 @@
-// pages/writing.jsx - articles with scheduling + owner-gated editing
+// pages/writing.jsx - articles with scheduling + owner-gated editing + date filter
 
 const ARTICLES_OVERRIDE_KEY = "sean_articles_overrides_v1";
 
 function parseDate(s) {
   if (!s) return null;
-  // Accept "May 17, 2026" or "2026-05-17" or anything Date parses
   const d = new Date(s);
   if (!isNaN(d)) return d;
   return null;
@@ -40,7 +39,6 @@ function todayLabel() {
 }
 
 function todayIso() {
-  // Today in Manila (Asia/Manila) regardless of device timezone
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Manila",
     year: "numeric", month: "2-digit", day: "2-digit",
@@ -51,26 +49,41 @@ function todayIso() {
   return `${y}-${m}-${d}`;
 }
 
-function isScheduled(a) {
-  if (!a.date) return false;
-  // Always interpret date + time as Manila local time (UTC+8) so the schedule
-  // behaves consistently no matter where the viewer's device is.
+// Build the Manila-anchored publish instant from an article record
+function manilaInstant(a) {
+  if (!a.date) return null;
   const d = parseDate(a.date);
-  if (!d) return false;
+  if (!d) return null;
   let hh = 0, mm = 0;
   if (a.time) {
     const parts = a.time.split(":").map(Number);
     if (!isNaN(parts[0])) { hh = parts[0]; mm = parts[1] || 0; }
   }
-  // Build an ISO string anchored to Manila (UTC+08:00). new Date(...) returns
-  // the UTC instant; compare it with Date.now() (also UTC).
   const y = d.getFullYear();
   const mo = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   const hStr = String(hh).padStart(2, "0");
   const mStr = String(mm).padStart(2, "0");
-  const manilaInstant = new Date(`${y}-${mo}-${day}T${hStr}:${mStr}:00+08:00`).getTime();
-  return manilaInstant > Date.now();
+  return new Date(`${y}-${mo}-${day}T${hStr}:${mStr}:00+08:00`).getTime();
+}
+
+function isScheduled(a) {
+  const t = manilaInstant(a);
+  if (t === null || isNaN(t)) return false;
+  return t > Date.now();
+}
+
+function relativeFromNow(targetMs) {
+  const diff = targetMs - Date.now();
+  if (diff <= 0) return "now";
+  const mins = Math.round(diff / 60000);
+  if (mins < 60) return `in ${mins} min`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `in ${hrs} hour${hrs === 1 ? "" : "s"}`;
+  const days = Math.round(hrs / 24);
+  if (days < 30) return `in ${days} day${days === 1 ? "" : "s"}`;
+  const months = Math.round(days / 30);
+  return `in ${months} month${months === 1 ? "" : "s"}`;
 }
 
 function readTimeFromBlocks(blocks) {
@@ -85,6 +98,14 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
   const [view, setView] = React.useState({ mode: "list" });
   const [category, setCategory] = React.useState("All");
   const [showScheduled, setShowScheduled] = React.useState(false);
+  // Date filter: "all" | yyyy or yyyy-mm
+  const [dateFilter, setDateFilter] = React.useState("all");
+  // Re-render every 60s so scheduled articles auto-flip to published when their time arrives
+  const [, forceTick] = React.useState(0);
+  React.useEffect(() => {
+    const i = setInterval(() => forceTick(n => n + 1), 60000);
+    return () => clearInterval(i);
+  }, []);
 
   const onSave = (draft) => {
     const overrides = getOverrides();
@@ -106,11 +127,12 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
       overrides.added = [newArt, ...overrides.added];
       saveOverrides(overrides);
       setArticles(loadArticles());
-      // If scheduled, drop the user back on the journal list so they can see the SCHEDULED badge.
-      // Otherwise open the published article.
       if (isScheduled(newArt)) {
         setShowScheduled(true);
+        setDateFilter("all");
+        setCategory("All");
         setView({ mode: "list" });
+        setTimeout(() => alert(`Article scheduled.\n\nIt will publish on ${newArt.date}${newArt.time ? " at " + newArt.time : ""} (Manila time).\n\nUntil then, only you (owner) can see it.`), 50);
       } else {
         setView({ mode: "read", id });
       }
@@ -131,7 +153,10 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
       const updated = { ...articles.find(a => a.id === draft.id), ...patch };
       if (isScheduled(updated)) {
         setShowScheduled(true);
+        setDateFilter("all");
+        setCategory("All");
         setView({ mode: "list" });
+        setTimeout(() => alert(`Changes saved · article is scheduled.\n\nIt will publish on ${updated.date}${updated.time ? " at " + updated.time : ""} (Manila time).`), 50);
       } else {
         setView({ mode: "read", id: draft.id });
       }
@@ -172,7 +197,6 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
   if (view.mode === "read") {
     const a = articles.find(x => x.id === view.id);
     if (!a) return null;
-    // Hide scheduled articles from non-owners
     if (!ownerMode && isScheduled(a)) {
       return (
         <div className="page-enter container" style={{ padding: "80px 0", textAlign: "center" }}>
@@ -183,7 +207,6 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
         </div>
       );
     }
-    // Compute prev/next from the same list visible in the current filter
     const baseVisible = ownerMode ? articles : articles.filter(x => !isScheduled(x));
     const filteredVisible = category === "All" ? baseVisible : baseVisible.filter(x => x.category === category);
     const navList = filteredVisible.length > 1 ? filteredVisible : baseVisible;
@@ -193,6 +216,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
     return <ArticleReader article={a}
       ownerMode={ownerMode}
       scheduled={isScheduled(a)}
+      manilaPublishMs={manilaInstant(a)}
       prev={prev}
       next={next}
       onPrev={() => setView({ mode: "read", id: prev.id })}
@@ -204,15 +228,47 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
   }
 
   // List view
-  // Visitors see only published. Owner sees everything, with optional toggle to focus on scheduled.
   const visible = ownerMode
     ? (showScheduled ? articles.filter(isScheduled) : articles)
     : articles.filter(a => !isScheduled(a));
 
-  const filtered = visible.filter(a => category === "All" || a.category === category);
+  // Date filter
+  const dateFiltered = visible.filter(a => {
+    if (dateFilter === "all") return true;
+    const d = parseDate(a.date);
+    if (!d) return false;
+    if (dateFilter.includes("-")) {
+      const [fy, fm] = dateFilter.split("-").map(Number);
+      return d.getFullYear() === fy && d.getMonth() + 1 === fm;
+    }
+    return d.getFullYear() === Number(dateFilter);
+  });
+
+  const filtered = dateFiltered.filter(a => category === "All" || a.category === category);
   const featured = visible.filter(a => a.featured);
 
   const scheduledCount = articles.filter(isScheduled).length;
+
+  // Build year + year-month options from visible articles
+  const dateOptions = React.useMemo(() => {
+    const years = new Set();
+    const yearMonths = new Set();
+    visible.forEach(a => {
+      const d = parseDate(a.date);
+      if (!d) return;
+      years.add(d.getFullYear());
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      yearMonths.add(`${y}-${m}`);
+    });
+    const sortedYears = [...years].sort((a, b) => b - a);
+    const sortedYearMonths = [...yearMonths].sort().reverse();
+    const monthName = (ym) => {
+      const [y, m] = ym.split("-").map(Number);
+      return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    };
+    return { years: sortedYears, monthsByYear: sortedYearMonths.map(ym => ({ ym, label: monthName(ym) })) };
+  }, [visible.length, articles]);
 
   return (
     <div className="page-enter">
@@ -221,7 +277,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
           <SectionHead
             eyebrow={`§ JOURNAL · ${visible.length} ARTICLES${ownerMode ? ` · ${scheduledCount} SCHEDULED` : ""}`}
             title="What I've been <em>thinking about</em>."
-            desc="Practical operations notes: SOPs, inbox routines, sourcing scorecards, KOL screening, sales conversations. Click an article to read."
+            desc="Practical operations and administrative notes: SOPs, inbox routines, documentation systems, and the back-office work that keeps teams running. Click an article to read."
           />
 
           {ownerMode && (
@@ -242,7 +298,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
             </div>
           )}
 
-          {!ownerMode && featured.length > 0 && category === "All" && (
+          {!ownerMode && featured.length > 0 && category === "All" && dateFilter === "all" && (
             <div className="featured-block">
               <div className="featured-head">
                 <h3 className="featured-h serif">Featured</h3>
@@ -268,10 +324,11 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
             </div>
           )}
 
+          {/* Filter bar */}
           <div className="cat-bar">
             <div className="cat-pills">
               {CATEGORIES.map(c => {
-                const count = c === "All" ? visible.length : visible.filter(a => a.category === c).length;
+                const count = c === "All" ? dateFiltered.length : dateFiltered.filter(a => a.category === c).length;
                 if (c !== "All" && count === 0) return null;
                 return (
                   <button
@@ -284,15 +341,30 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
                 );
               })}
             </div>
+            <div className="date-filter">
+              <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+                <option value="all">All dates</option>
+                <optgroup label="By year">
+                  {dateOptions.years.map(y => <option key={y} value={String(y)}>{y}</option>)}
+                </optgroup>
+                <optgroup label="By month">
+                  {dateOptions.monthsByYear.map(({ ym, label }) => <option key={ym} value={ym}>{label}</option>)}
+                </optgroup>
+              </select>
+              {dateFilter !== "all" && (
+                <button className="date-clear mono" onClick={() => setDateFilter("all")}>CLEAR ✕</button>
+              )}
+            </div>
           </div>
 
           <div className="articles-grid">
             {filtered.map(a => {
               const sched = isScheduled(a);
+              const liveIn = sched ? relativeFromNow(manilaInstant(a)) : null;
               return (
                 <article key={a.id} className={"art-card" + (sched ? " art-scheduled" : "")} onClick={() => setView({ mode: "read", id: a.id })}>
                   <div className="art-cover" style={{ backgroundImage: `url(${a.cover})` }}>
-                    {sched && <span className="art-flag art-flag-sched mono">◴ SCHEDULED</span>}
+                    {sched && <span className="art-flag art-flag-sched mono">◴ SCHEDULED · {liveIn.toUpperCase()}</span>}
                     {!sched && a.featured && <span className="art-flag mono">★ Featured</span>}
                   </div>
                   <div className="art-body">
@@ -309,7 +381,15 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
           </div>
 
           {filtered.length === 0 && (
-            <div className="empty-state mono">No articles in <b>{category}</b> yet.</div>
+            <div className="empty-state mono">
+              No articles match this filter.
+              {(category !== "All" || dateFilter !== "all") && (
+                <>
+                  {" "}
+                  <button className="date-clear mono" onClick={() => { setCategory("All"); setDateFilter("all"); }}>RESET FILTERS</button>
+                </>
+              )}
+            </div>
           )}
 
           <div className="journal-card">
@@ -327,4 +407,4 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
   );
 }
 
-Object.assign(window, { WritingPage, loadArticles, getOverrides, saveOverrides, todayLabel, todayIso, readTimeFromBlocks, CATEGORIES, isScheduled, parseDate });
+Object.assign(window, { WritingPage, loadArticles, getOverrides, saveOverrides, todayLabel, todayIso, readTimeFromBlocks, CATEGORIES, isScheduled, parseDate, manilaInstant, relativeFromNow });

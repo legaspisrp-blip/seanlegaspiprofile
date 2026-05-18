@@ -1,6 +1,6 @@
 // pages/writing-views.jsx - Reader and Composer for articles
 
-function ArticleReader({ article, ownerMode, scheduled, prev, next, onPrev, onNext, onBack, onEdit, onDelete, onToggleFeatured }) {
+function ArticleReader({ article, ownerMode, scheduled, manilaPublishMs, prev, next, onPrev, onNext, onBack, onEdit, onDelete, onToggleFeatured }) {
   // Prefer modern HTML body; fall back to legacy blocks for unedited seed articles
   const rendered = React.useMemo(() => {
     if (article.body) return { __html: article.body };
@@ -29,6 +29,19 @@ function ArticleReader({ article, ownerMode, scheduled, prev, next, onPrev, onNe
         <h1 className="article-title">{article.title}</h1>
         {article.subtitle && <p className="article-sub serif">{article.subtitle}</p>}
       </div>
+
+      {scheduled && ownerMode && (
+        <div className="scheduled-banner">
+          <div className="scheduled-banner-l">
+            <span className="mono scheduled-banner-tag">◴ SCHEDULED · OWNER PREVIEW</span>
+            <div className="scheduled-banner-msg">
+              This article publishes on <b>{article.date}{article.time ? ` at ${article.time}` : ""}</b> (Manila time)
+              {manilaPublishMs ? ` · goes live ${window.relativeFromNow(manilaPublishMs)}` : ""}.
+              Visitors will not see it until then.
+            </div>
+          </div>
+        </div>
+      )}
 
       <figure className="article-cover">
         <img src={article.cover} alt={article.title} />
