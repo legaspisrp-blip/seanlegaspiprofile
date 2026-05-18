@@ -1,6 +1,12 @@
 // pages/writing-views.jsx - Reader and Composer for articles
 
 function ArticleReader({ article, ownerMode, scheduled, onBack, onEdit, onDelete, onToggleFeatured }) {
+  // Prefer modern HTML body; fall back to legacy blocks for unedited seed articles
+  const rendered = React.useMemo(() => {
+    if (article.body) return { __html: article.body };
+    return { __html: window.blocksToHTML(article.blocks) };
+  }, [article.body, article.blocks]);
+
   return (
     <div className="page-enter container article-reader">
       <span className="case-back mono" onClick={onBack}>← Back to Journal</span>
@@ -23,9 +29,7 @@ function ArticleReader({ article, ownerMode, scheduled, onBack, onEdit, onDelete
         <img src={article.cover} alt={article.title} />
       </figure>
 
-      <article className="article-body">
-        {(article.blocks || []).map((b, i) => window.renderBlock(b, i))}
-      </article>
+      <div className="article-body" dangerouslySetInnerHTML={rendered} />
 
       {ownerMode && (
         <div className="article-actions owner-actions">
@@ -69,9 +73,16 @@ function nowTime() {
   return d.toTimeString().slice(0, 5); // HH:MM
 }
 
+function htmlToWordCount(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html || "";
+  return (tmp.textContent || tmp.innerText || "").split(/\s+/).filter(Boolean).length;
+}
+
 function ArticleComposer({ initial, onCancel, onSave }) {
   const initialIso = initial?.date ? humanToIso(initial.date) || window.todayIso() : window.todayIso();
   const initialTime = initial?.time || nowTime();
+  const initialHTML = initial?.body || window.blocksToHTML(initial?.blocks);
 
   const [draft, setDraft] = React.useState({
     id: initial?.id || "",
@@ -83,47 +94,37 @@ function ArticleComposer({ initial, onCancel, onSave }) {
     dateIso: initialIso,
     time: initialTime,
     featured: !!initial?.featured,
-    blocks: initial?.blocks || [],
   });
 
-  // Custom category state
+  // Body HTML is stored in a ref so React doesn't re-render the editor on each keystroke
+  const bodyHTMLRef = React.useRef(initialHTML);
+  const [wordCount, setWordCount] = React.useState(htmlToWordCount(initialHTML));
+
   const [addingCategory, setAddingCategory] = React.useState(false);
   const [newCategory, setNewCategory] = React.useState("");
 
-  // Live list of categories: defaults + any custom ones already present in stored articles
   const allCategories = React.useMemo(() => {
     const defaults = window.CATEGORIES.filter(c => c !== "All");
     const fromArticles = window.loadArticles().map(a => a.category).filter(Boolean);
     return Array.from(new Set([...defaults, ...fromArticles]));
-  }, [draft.category]);
+  }, []);
 
-  const blocksToText = (blocks) => (blocks || []).map(b => b.s === "h" ? "§ " + b.t : b.t).join("\n\n");
-  const textToBlocks = (text) => text.split(/\n\n+/).map(seg => {
-    const t = seg.trim();
-    if (!t) return null;
-    if (t.startsWith("§")) return { s: "h", t: t.replace(/^§\s*/, "") };
-    return { s: "p", t };
-  }).filter(Boolean);
-
-  const [bodyText, setBodyText] = React.useState(blocksToText(draft.blocks));
-  const bodyRef = React.useRef(null);
   const onField = (k) => (e) => setDraft({ ...draft, [k]: e.target.value });
 
-  const wordCount = (bodyText || "").split(/\s+/).filter(Boolean).length;
+  const onBodyChange = (html) => {
+    bodyHTMLRef.current = html;
+    setWordCount(htmlToWordCount(html));
+  };
+
   const readTime = Math.max(1, Math.round(wordCount / 220)) + " min";
 
-  // Combine date + time
   const publishDateTime = new Date(`${draft.dateIso}T${draft.time || "00:00"}:00`);
   const isScheduled = publishDateTime instanceof Date && !isNaN(publishDateTime) && publishDateTime.getTime() > Date.now() + 60 * 1000;
 
-  // Handle cover image upload
   const onCoverUpload = (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please choose an image file.");
-      return;
-    }
+    if (!file.type.startsWith("image/")) { alert("Please choose an image file."); return; }
     if (file.size > 4 * 1024 * 1024) {
       alert("Image is over 4 MB. For best performance, use one under 1 MB. (Continuing anyway…)");
     }
@@ -136,14 +137,9 @@ function ArticleComposer({ initial, onCancel, onSave }) {
 
   const onCategoryChange = (e) => {
     const v = e.target.value;
-    if (v === "__add_new__") {
-      setAddingCategory(true);
-      setNewCategory("");
-    } else {
-      setDraft({ ...draft, category: v });
-    }
+    if (v === "__add_new__") { setAddingCategory(true); setNewCategory(""); }
+    else { setDraft({ ...draft, category: v }); }
   };
-
   const confirmNewCategory = () => {
     const trimmed = (newCategory || "").trim();
     if (!trimmed) { setAddingCategory(false); return; }
@@ -153,7 +149,15 @@ function ArticleComposer({ initial, onCancel, onSave }) {
 
   const save = (overrides = {}) => {
     const date = isoToHuman(draft.dateIso) || window.todayLabel();
-    onSave({ ...draft, ...overrides, date, blocks: textToBlocks(bodyText) });
+    const html = bodyHTMLRef.current || "";
+    // Build a simple block list too, for backward compat & read-time estimation
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    const blocks = Array.from(tmp.children).map(node => ({
+      s: /^H[1-6]$/i.test(node.tagName) ? "h" : "p",
+      t: node.textContent || "",
+    }));
+    onSave({ ...draft, ...overrides, date, body: html, blocks });
   };
 
   const publishNow = () => {
@@ -163,7 +167,6 @@ function ArticleComposer({ initial, onCancel, onSave }) {
     setTimeout(() => save({ dateIso: today, time, date: isoToHuman(today) }), 50);
   };
 
-  // Format the scheduled-for label
   const schedLabel = publishDateTime.toLocaleString("en-US", {
     month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
   });
@@ -195,24 +198,13 @@ function ArticleComposer({ initial, onCancel, onSave }) {
             onChange={onField("subtitle")}
           />
 
-          <window.RichToolbar
-            textareaRef={bodyRef}
-            value={bodyText}
-            onChange={setBodyText}
-          />
-
-          <textarea
-            ref={bodyRef}
-            className="composer-body"
-            placeholder={`Write your article…\n\nUse the toolbar above to add headings, bold, italics, lists, and more. Or type the markdown shortcuts directly:\n  § Section heading\n  ## Sub-heading\n  **bold**  *italic*  ~~strike~~  \`code\`\n  > Quote\n  - bullet list\n  1. numbered list\n  [link text](https://url)`}
-            rows={22}
-            value={bodyText}
-            onChange={(e) => setBodyText(e.target.value)}
+          <window.RichEditor
+            initialHTML={initialHTML}
+            onChange={onBodyChange}
           />
         </div>
 
         <aside className="composer-side">
-          {/* COVER UPLOADER */}
           <div className="composer-side-card">
             <h4 className="mono">COVER IMAGE</h4>
             {draft.cover ? (
@@ -236,7 +228,6 @@ function ArticleComposer({ initial, onCancel, onSave }) {
             )}
           </div>
 
-          {/* SCHEDULE */}
           <div className="composer-side-card">
             <h4 className="mono">PUBLISH</h4>
             <div className="form-row">
@@ -248,13 +239,10 @@ function ArticleComposer({ initial, onCancel, onSave }) {
               <input type="time" value={draft.time} onChange={onField("time")} />
             </div>
             <span className="mono" style={{ fontSize: 10, color: isScheduled ? "#8a6500" : "var(--accent)", marginTop: 4 }}>
-              {isScheduled
-                ? `◴ Scheduled · goes live ${schedLabel}`
-                : `✓ Will publish immediately on save`}
+              {isScheduled ? `◴ Scheduled · goes live ${schedLabel}` : `✓ Will publish immediately on save`}
             </span>
           </div>
 
-          {/* META */}
           <div className="composer-side-card">
             <h4 className="mono">META</h4>
             <div className="form-row">
@@ -286,6 +274,19 @@ function ArticleComposer({ initial, onCancel, onSave }) {
               <div><span>Words</span><b>{wordCount}</b></div>
               <div><span>Read</span><b>{readTime}</b></div>
             </div>
+          </div>
+
+          <div className="composer-side-card composer-shortcuts">
+            <h4 className="mono">SHORTCUTS</h4>
+            <div className="kbd-row"><span>Bold</span><kbd>⌘ B</kbd></div>
+            <div className="kbd-row"><span>Italic</span><kbd>⌘ I</kbd></div>
+            <div className="kbd-row"><span>Underline</span><kbd>⌘ U</kbd></div>
+            <div className="kbd-row"><span>Link</span><kbd>⌘ K</kbd></div>
+            <div className="kbd-row"><span>Bullet list</span><kbd>⌘ ⇧ 8</kbd></div>
+            <div className="kbd-row"><span>Numbered</span><kbd>⌘ ⇧ 7</kbd></div>
+            <div className="kbd-row"><span>Indent</span><kbd>Tab</kbd></div>
+            <div className="kbd-row"><span>Un-indent</span><kbd>⇧ Tab</kbd></div>
+            <div className="kbd-row"><span>Heading</span><kbd>⌘ ⌥ 1</kbd></div>
           </div>
 
           <button
