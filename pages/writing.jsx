@@ -46,7 +46,17 @@ function todayIso() {
 
 function isScheduled(a) {
   const d = parseDate(a.date);
-  return d && d.getTime() > Date.now();
+  if (!d) return false;
+  // If article has a time, combine it
+  if (a.time) {
+    const [hh, mm] = a.time.split(":").map(Number);
+    if (!isNaN(hh)) d.setHours(hh, mm || 0, 0, 0);
+  } else {
+    // No time = whole day; consider scheduled if date is strictly future
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return d.getTime() > today.getTime();
+  }
+  return d.getTime() > Date.now();
 }
 
 function readTimeFromBlocks(blocks) {
@@ -71,6 +81,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
         cover: draft.cover || (window.SEED_ARTICLES[0]?.cover || ""),
         title: draft.title || "Untitled",
         date: draft.date || todayLabel(),
+        time: draft.time || "",
         subtitle: draft.subtitle || "",
         category: draft.category || "Notes",
         featured: !!draft.featured,
@@ -88,7 +99,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
       } else {
         overrides.edits[draft.id] = {
           title: draft.title, subtitle: draft.subtitle, category: draft.category,
-          date: draft.date, featured: draft.featured, blocks: draft.blocks, cover: draft.cover,
+          date: draft.date, time: draft.time, featured: draft.featured, blocks: draft.blocks, cover: draft.cover,
         };
       }
       saveOverrides(overrides);
