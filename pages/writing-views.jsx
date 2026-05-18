@@ -1,16 +1,40 @@
 // pages/writing-views.jsx - Reader and Composer for articles
 
 function ArticleReader({ article, ownerMode, scheduled, manilaPublishMs, prev, next, onPrev, onNext, onBack, onEdit, onDelete, onToggleFeatured }) {
+  // Defensive: make sure article has all expected fields
+  const safeArticle = {
+    title: "Untitled",
+    subtitle: "",
+    category: "Notes",
+    date: "",
+    time: "",
+    cover: "",
+    body: "",
+    blocks: [],
+    featured: false,
+    ...(article || {}),
+  };
+
   // Prefer modern HTML body; fall back to legacy blocks for unedited seed articles
   const rendered = React.useMemo(() => {
-    if (article.body) return { __html: article.body };
-    return { __html: window.blocksToHTML(article.blocks) };
-  }, [article.body, article.blocks]);
+    try {
+      if (safeArticle.body) return { __html: String(safeArticle.body) };
+      if (window.blocksToHTML) return { __html: window.blocksToHTML(safeArticle.blocks) };
+      return { __html: "" };
+    } catch (e) {
+      return { __html: "" };
+    }
+  }, [safeArticle.body, safeArticle.blocks]);
+
+  const readTime = (() => {
+    try { return window.readTimeFromBlocks ? window.readTimeFromBlocks(safeArticle.blocks) : ""; }
+    catch (e) { return ""; }
+  })();
 
   // Scroll to top on article change
   React.useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [article.id]);
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
+  }, [safeArticle.title]);
 
   return (
     <div className="page-enter container article-reader">

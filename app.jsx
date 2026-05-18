@@ -1,11 +1,11 @@
 // app.jsx — root + router
 
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "palette": ["#c2502a", "#1a1815", "#ebe7df"],
-  "density": "regular",
-  "dark": false,
-  "fontMode": "editorial"
-}/*EDITMODE-END*/;
+const DEFAULT_SETTINGS = {
+  palette: ["#c2502a", "#1a1815", "#ebe7df"],
+  density: "regular",
+  dark: false,
+  fontMode: "editorial",
+};
 
 const FONT_MODES = {
   editorial: {
@@ -26,40 +26,45 @@ const FONT_MODES = {
 };
 
 const PALETTES = [
-  ["#c2502a", "#1a1815", "#ebe7df"],
-  ["#3a5a40", "#1a1815", "#ebe7df"],
-  ["#2b4eff", "#0d1117", "#eef0f4"],
-  ["#d4b04a", "#1a1815", "#ebe7df"],
-  ["#b04a52", "#1f1a1a", "#f0e9e1"],
+  ["#c2502a", "#1a1815", "#ebe7df"], // terracotta (default)
+  ["#3a5a40", "#1a1815", "#ebe7df"], // forest
+  ["#2b4eff", "#0d1117", "#eef0f4"], // electric blue
+  ["#d4b04a", "#1a1815", "#ebe7df"], // brass
+  ["#b04a52", "#1f1a1a", "#f0e9e1"], // claret
 ];
 
 function App() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [settings, setSetting] = useSiteSettings(DEFAULT_SETTINGS);
   const [route, setRoute] = React.useState({ name: "home" });
   const auth = useAuth();
 
   React.useEffect(() => {
     const root = document.documentElement;
-    const [accent] = t.palette || PALETTES[0];
+    const [accent] = settings.palette || PALETTES[0];
     root.style.setProperty("--accent", accent);
-    root.dataset.theme = t.dark ? "dark" : "light";
-    root.dataset.density = t.density;
-    const fm = FONT_MODES[t.fontMode] || FONT_MODES.editorial;
+    root.dataset.theme = settings.dark ? "dark" : "light";
+    root.dataset.density = settings.density;
+    const fm = FONT_MODES[settings.fontMode] || FONT_MODES.editorial;
     root.style.setProperty("--serif", fm.serif);
     root.style.setProperty("--sans", fm.sans);
-  }, [t]);
+  }, [settings]);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [route]);
 
-  const setDark = (v) => setTweak("dark", v);
+  const setDark = (v) => setSetting("dark", v);
+
+  const resetSettings = () => {
+    if (!confirm("Reset all site settings to defaults?")) return;
+    setSetting(DEFAULT_SETTINGS);
+  };
 
   return (
     <>
-      <Nav route={route} setRoute={setRoute} dark={!!t.dark} setDark={setDark} />
+      <Nav route={route} setRoute={setRoute} dark={!!settings.dark} setDark={setDark} />
       <main>
-        {route.name === "home" && <HomePage setRoute={setRoute} tweaks={t} />}
+        {route.name === "home" && <HomePage setRoute={setRoute} tweaks={settings} />}
         {route.name === "work" && <WorkPage setRoute={setRoute} />}
         {route.name === "case" && <CasePage id={route.id} setRoute={setRoute} />}
         {route.name === "about" && <AboutPage setRoute={setRoute} />}
@@ -77,39 +82,16 @@ function App() {
 
       <LoginModal open={auth.open} onClose={() => auth.setOpen(false)} onLogin={auth.login} />
 
-      <TweaksPanel>
-        <TweakSection label="Palette" />
-        <TweakColor
-          label="Theme"
-          value={t.palette}
-          options={PALETTES}
-          onChange={(v) => setTweak("palette", v)}
+      {/* Owner-only floating settings panel */}
+      {auth.authed && (
+        <SiteSettingsPanel
+          settings={settings}
+          set={setSetting}
+          palettes={PALETTES}
+          fontModes={FONT_MODES}
+          onReset={resetSettings}
         />
-        <TweakToggle label="Dark mode" value={!!t.dark} onChange={(v) => setTweak("dark", v)} />
-
-        <TweakSection label="Typography" />
-        <TweakRadio
-          label="Font pairing"
-          value={t.fontMode}
-          options={Object.keys(FONT_MODES)}
-          onChange={(v) => setTweak("fontMode", v)}
-        />
-
-        <TweakSection label="Layout" />
-        <TweakRadio
-          label="Density"
-          value={t.density}
-          options={["compact", "regular", "comfy"]}
-          onChange={(v) => setTweak("density", v)}
-        />
-
-        <TweakSection label="Navigate" />
-        <TweakButton label="Home" onClick={() => setRoute({ name: "home" })} />
-        <TweakButton label="Work" onClick={() => setRoute({ name: "work" })} />
-        <TweakButton label="About" onClick={() => setRoute({ name: "about" })} />
-        <TweakButton label="Journal" onClick={() => setRoute({ name: "writing" })} />
-        <TweakButton label="Contact" onClick={() => setRoute({ name: "contact" })} />
-      </TweaksPanel>
+      )}
     </>
   );
 }
