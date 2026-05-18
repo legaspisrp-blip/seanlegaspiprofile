@@ -183,6 +183,15 @@ function ArticleComposer({ initial, onCancel, onSave }) {
       s: /^H[1-6]$/i.test(node.tagName) ? "h" : "p",
       t: node.textContent || "",
     }));
+
+    // Confirm scheduled posts so the user knows what happened
+    if (isScheduled && !overrides._silent) {
+      const ok = confirm(
+        `This article will be SCHEDULED to publish on:\n\n  ${schedLabel}\n\nVisitors won't see it until then. You'll see it in your Journal with a "SCHEDULED" badge.\n\nProceed?`
+      );
+      if (!ok) return;
+    }
+
     onSave({ ...draft, ...overrides, date, body: html, blocks });
   };
 
@@ -300,19 +309,6 @@ function ArticleComposer({ initial, onCancel, onSave }) {
               <div><span>Words</span><b>{wordCount}</b></div>
               <div><span>Read</span><b>{readTime}</b></div>
             </div>
-          </div>
-
-          <div className="composer-side-card composer-shortcuts">
-            <h4 className="mono">SHORTCUTS</h4>
-            <div className="kbd-row"><span>Bold</span><kbd>⌘ B</kbd></div>
-            <div className="kbd-row"><span>Italic</span><kbd>⌘ I</kbd></div>
-            <div className="kbd-row"><span>Underline</span><kbd>⌘ U</kbd></div>
-            <div className="kbd-row"><span>Link</span><kbd>⌘ K</kbd></div>
-            <div className="kbd-row"><span>Bullet list</span><kbd>⌘ ⇧ 8</kbd></div>
-            <div className="kbd-row"><span>Numbered</span><kbd>⌘ ⇧ 7</kbd></div>
-            <div className="kbd-row"><span>Indent</span><kbd>Tab</kbd></div>
-            <div className="kbd-row"><span>Un-indent</span><kbd>⇧ Tab</kbd></div>
-            <div className="kbd-row"><span>Heading</span><kbd>⌘ ⌥ 1</kbd></div>
           </div>
 
           <button
