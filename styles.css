@@ -50,7 +50,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "ss01", "cv11";
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 ::selection { background: var(--accent); color: var(--bg); }
@@ -1621,18 +1621,18 @@ button { font-family: inherit; }
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--paper);
-  overflow: hidden;
 }
 
 .rich-editor .rt-toolbar {
   position: sticky;
-  top: 60px;
-  z-index: 5;
+  top: 64px;
+  z-index: 10;
   background: var(--paper);
   border: 0;
   border-bottom: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: 10px 10px 0 0;
   padding: 8px 10px;
+  box-shadow: 0 4px 12px -8px rgba(0, 0, 0, 0.15);
 }
 
 .rich-editor-content {
