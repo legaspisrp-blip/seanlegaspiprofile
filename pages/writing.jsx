@@ -298,7 +298,7 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
                   <div className="art-body">
                     <div className="art-meta mono">
                       <span>{a.category}</span>
-                      <span>{a.date}</span>
+                      <span>{a.date}{a.time ? ` · ${a.time}` : ""}</span>
                     </div>
                     <h4 className="art-title">{a.title}</h4>
                     <p className="art-sub">{a.subtitle}</p>

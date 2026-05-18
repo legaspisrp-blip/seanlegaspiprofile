@@ -83,15 +83,23 @@ function ArticleReader({ article, ownerMode, scheduled, prev, next, onPrev, onNe
 
 function isoToHuman(iso) {
   if (!iso) return "";
-  const d = new Date(iso + "T00:00:00");
-  if (isNaN(d)) return iso;
-  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  // Manually parse the ISO date to avoid any timezone shift
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d) return iso;
+  const dt = new Date(y, m - 1, d, 12, 0, 0); // midday avoids any DST edge cases
+  return dt.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
 function humanToIso(human) {
+  if (!human) return "";
   const d = new Date(human);
   if (isNaN(d)) return "";
-  return d.toISOString().slice(0, 10);
+  // Use local date components — avoid .toISOString() which converts to UTC
+  // and can shift the date by one day for PH (UTC+8).
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function nowTime() {
