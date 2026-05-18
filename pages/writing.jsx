@@ -40,23 +40,37 @@ function todayLabel() {
 }
 
 function todayIso() {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
+  // Today in Manila (Asia/Manila) regardless of device timezone
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Manila",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const y = parts.find(p => p.type === "year").value;
+  const m = parts.find(p => p.type === "month").value;
+  const d = parts.find(p => p.type === "day").value;
+  return `${y}-${m}-${d}`;
 }
 
 function isScheduled(a) {
+  if (!a.date) return false;
+  // Always interpret date + time as Manila local time (UTC+8) so the schedule
+  // behaves consistently no matter where the viewer's device is.
   const d = parseDate(a.date);
   if (!d) return false;
-  // If article has a time, combine it
+  let hh = 0, mm = 0;
   if (a.time) {
-    const [hh, mm] = a.time.split(":").map(Number);
-    if (!isNaN(hh)) d.setHours(hh, mm || 0, 0, 0);
-  } else {
-    // No time = whole day; consider scheduled if date is strictly future
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    return d.getTime() > today.getTime();
+    const parts = a.time.split(":").map(Number);
+    if (!isNaN(parts[0])) { hh = parts[0]; mm = parts[1] || 0; }
   }
-  return d.getTime() > Date.now();
+  // Build an ISO string anchored to Manila (UTC+08:00). new Date(...) returns
+  // the UTC instant; compare it with Date.now() (also UTC).
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hStr = String(hh).padStart(2, "0");
+  const mStr = String(mm).padStart(2, "0");
+  const manilaInstant = new Date(`${y}-${mo}-${day}T${hStr}:${mStr}:00+08:00`).getTime();
+  return manilaInstant > Date.now();
 }
 
 function readTimeFromBlocks(blocks) {
@@ -85,26 +99,42 @@ function WritingPage({ setRoute, ownerMode, onLogout, onLogin }) {
         subtitle: draft.subtitle || "",
         category: draft.category || "Notes",
         featured: !!draft.featured,
+        body: draft.body || "",
         blocks: draft.blocks || [],
         userAdded: true,
       };
       overrides.added = [newArt, ...overrides.added];
       saveOverrides(overrides);
       setArticles(loadArticles());
-      setView({ mode: "read", id });
+      // If scheduled, drop the user back on the journal list so they can see the SCHEDULED badge.
+      // Otherwise open the published article.
+      if (isScheduled(newArt)) {
+        setShowScheduled(true);
+        setView({ mode: "list" });
+      } else {
+        setView({ mode: "read", id });
+      }
     } else {
       const isUser = articles.find(a => a.id === draft.id)?.userAdded;
+      const patch = {
+        title: draft.title, subtitle: draft.subtitle, category: draft.category,
+        date: draft.date, time: draft.time, featured: draft.featured,
+        body: draft.body, blocks: draft.blocks, cover: draft.cover,
+      };
       if (isUser) {
-        overrides.added = overrides.added.map(a => a.id === draft.id ? { ...a, ...draft } : a);
+        overrides.added = overrides.added.map(a => a.id === draft.id ? { ...a, ...patch } : a);
       } else {
-        overrides.edits[draft.id] = {
-          title: draft.title, subtitle: draft.subtitle, category: draft.category,
-          date: draft.date, time: draft.time, featured: draft.featured, blocks: draft.blocks, cover: draft.cover,
-        };
+        overrides.edits[draft.id] = patch;
       }
       saveOverrides(overrides);
       setArticles(loadArticles());
-      setView({ mode: "read", id: draft.id });
+      const updated = { ...articles.find(a => a.id === draft.id), ...patch };
+      if (isScheduled(updated)) {
+        setShowScheduled(true);
+        setView({ mode: "list" });
+      } else {
+        setView({ mode: "read", id: draft.id });
+      }
     }
   };
 

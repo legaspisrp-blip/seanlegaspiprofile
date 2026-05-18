@@ -95,8 +95,16 @@ function humanToIso(human) {
 }
 
 function nowTime() {
-  const d = new Date();
-  return d.toTimeString().slice(0, 5); // HH:MM
+  // Manila local time HH:MM regardless of device timezone
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Manila",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date());
+  const hh = parts.find(p => p.type === "hour").value;
+  const mm = parts.find(p => p.type === "minute").value;
+  return `${hh}:${mm}`;
 }
 
 function htmlToWordCount(html) {
@@ -144,8 +152,14 @@ function ArticleComposer({ initial, onCancel, onSave }) {
 
   const readTime = Math.max(1, Math.round(wordCount / 220)) + " min";
 
-  const publishDateTime = new Date(`${draft.dateIso}T${draft.time || "00:00"}:00`);
-  const isScheduled = publishDateTime instanceof Date && !isNaN(publishDateTime) && publishDateTime.getTime() > Date.now() + 60 * 1000;
+  // Always interpret the picked date+time as Manila time (UTC+8). This makes the
+  // scheduling consistent regardless of the user's device timezone.
+  const buildManilaInstant = (iso, time) => {
+    const t = (time || "00:00").padStart(5, "0");
+    return new Date(`${iso}T${t}:00+08:00`).getTime();
+  };
+  const publishMs = buildManilaInstant(draft.dateIso, draft.time);
+  const isScheduled = !isNaN(publishMs) && publishMs > Date.now() + 60 * 1000;
 
   const onCoverUpload = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -202,9 +216,10 @@ function ArticleComposer({ initial, onCancel, onSave }) {
     setTimeout(() => save({ dateIso: today, time, date: isoToHuman(today) }), 50);
   };
 
-  const schedLabel = publishDateTime.toLocaleString("en-US", {
+  const schedLabel = new Date(publishMs).toLocaleString("en-US", {
     month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit",
-  });
+    timeZone: "Asia/Manila",
+  }) + " PH";
 
   return (
     <div className="page-enter container composer">
